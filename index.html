@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Feedback & Complaint Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+  <img src="logo.png" alt="Logo">
+    </div>
+            <div>
+            <h1> Aics Student Voice</h1>
+            <span>Feedback & Complaint Management</span>
+    </div>
+    </div>
+        <nav>
+            <button class="nav-btn active" data-section="home">Home</button>
+            <button class="nav-btn" data-section="submit">Submit</button>
+            <button class="nav-btn" data-section="dashboard">My Submissions</button>
+            <button class="nav-btn" data-section="admin">Admin</button>
+        </nav>
+    </header>
+    <main>
+        <section id="home" class="section active">
+        <div class="hero">
+        <div class="hero-content">
+        <span class="badge">STUDENT VOICE & SUPPORT PORTAL</span>
+        <h2>Speak Up. Be Heard. <span>Take Action.</span></h2>
+        <p>Submit your feedback, report concerns, and track your complaints easily through our student support management system.</p>
+        <div class="hero-buttons">
+        <button class="primary-btn" onclick="showSection('submit')">Submit Feedback</button>
+        <button class="secondary-btn" onclick="showSection('dashboard')">Track Submission</button>
+    </div>
+    </div>
+        <div class="hero-card">
+        <div class="floating-icon">💬</div>
+        <h3>We Listen</h3>
+        <p>All submissions are assessed and handled by the relevant department.</p>
+        <div class="mini-stat">
+        <strong id="homeTotal">0</strong>
+        <span>Total Submissions</span>
+    </div>
+    </div>
+    </div>
+        <div class="features">
+        <div class="feature-card">
+        <div class="feature-icon blue">📝</div>
+        <h3>Easy Submission</h3>
+        <p>Send feedback or complaints through a simple and convenient form.</p>
+    </div>
+        <div class="feature-card">
+        <div class="feature-icon green">🔎</div>
+        <h3>Track Status</h3>
+        <p>Monitor the status of your submission from pending to resolved.</p>
+    </div>
+        <div class="feature-card">
+        <div class="feature-icon orange">🔒</div>
+        <h3>Student Focused</h3>
+        <p>Keep communication organized between students and administrators.</p>
+    </div>
+    </div>
+    </section>
+        <section id="submit" class="section">
+        <div class="page-title">
+        <span class="badge">SUBMISSION</span>
+        <h2>Submit Feedback or Complaint</h2>
+        <p>Tell us what happened and how we can improve.</p>
+    </div>
+        <div class="form-container">
+        <form id="submissionForm">
+        <div class="form-row">
+        <div class="form-group">
+        <label for="studentName">Student Name</label>
+        <input type="text" id="studentName" placeholder="Enter your full name" required>
+    </div>
+        <div class="form-group">
+        <label for="studentId">Student ID</label>
+        <input type="text" id="studentId" placeholder="e.g. 2026-00123" required>
+    </div>
+    </div>
+        <div class="form-row">
+        <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="student@example.com" required>
+    </div>
+        <div class="form-group">
+        <label for="department">Department</label>
+        <select id="department" required>
+            <option value="">Select department</option>
+            <option>BS Computer Science</option>
+            <option>BS Computer Engineering</option>
+            <option>BS Entrepreneurship</option>
+    </select>
+    </div>
+    </div>
+        <div class="form-row">
+        <div class="form-group">
+        <label for="submissionType">Submission Type</label>
+        <select id="submissionType" required>
+            <option value="">Select type</option>
+            <option value="Feedback">Feedback</option>
+            <option value="Complaint">Complaint</option>
+    </select>
+    </div>
+        <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" required>
+            <option value="">Select category</option>
+            <option>Teachers</option>
+            <option>Faculty/Staff</option>
+            <option>Guidance Faculty</option>
+            <option>Facilities</option>
+            <option>Other</option>
+    </select>
+    </div>
+    </div>
+        <div class="form-group">
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" placeholder="Short description" required>
+    </div>
+        <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" rows="7" placeholder="Please provide details about your feedback or complaint." required></textarea>
+    </div>
+        <div class="form-group">
+        <label for="anonymous">Anonymous Submission</label>
+        <div class="toggle-container">
+        <input type="checkbox" id="anonymous">
+        <span>Submit without displaying your name publicly.</span>
+     </div>
+    </div>
+        <div class="form-actions">
+        <button type="reset" class="cancel-btn">Clear Form</button>
+        <button type="submit" class="primary-btn">Submit</button>
+    </div>
+    </form>
+    </div>
+    </section>
+        <section id="dashboard" class="section">
+        <div class="page-title dashboard-heading">
+    <div>
+        <span class="badge">STUDENT DASHBOARD</span>
+        <h2>My Submissions</h2>
+        <p>View and track your feedback and complaints.</p>
+    </div>
+        <button class="primary-btn" onclick="showSection('submit')">New Submission</button>
+    </div>
+        <div class="stats">
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div><strong id="totalCount">0</strong><span>Total</span></div></div>
+        <div class="stat-card"><div class="stat-icon orange">⏳</div><div><strong id="pendingCount">0</strong><span>Pending</span></div></div>
+        <div class="stat-card"><div class="stat-icon purple">🔄</div><div><strong id="progressCount">0</strong><span>In Progress</span></div></div>
+        <div class="stat-card"><div class="stat-icon green">✓</div><div><strong id="resolvedCount">0</strong><span>Resolved</span></div></div>
+    </div>
+        <div class="dashboard-tools">
+        <input type="search" id="searchInput" placeholder="🔎 Search submissions...">
+        <select id="filterStatus">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+    </select>
+        <select id="filterType">
+            <option value="all">All Types</option>
+            <option value="Feedback">Feedback</option>
+            <option value="Complaint">Complaint</option>
+    </select>
+    </div>
+        <div id="submissionList" class="submission-list"></div>
+    </section>
+        <section id="admin" class="section">
+        <div class="page-title">
+            <span class="badge">ADMINISTRATION</span>
+            <h2>Admin Management Panel</h2>
+            <p>Manage student Feedback and Complaints.</p>
+    </div>
+        <div class="stats">
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div><strong id="adminTotal">0</strong><span>Total</span></div></div>
+        <div class="stat-card"><div class="stat-icon orange">⏳</div><div><strong id="adminPending">0</strong><span>Pending</span></div></div>
+        <div class="stat-card"><div class="stat-icon purple">🔄</div><div><strong id="adminProgress">0</strong><span>In Progress</span></div></div>
+        <div class="stat-card"><div class="stat-icon green">✓</div><div><strong id="adminResolved">0</strong><span>Resolved</span></div></div>
+     </div>
+        <div class="admin-controls">
+        <input type="search" id="adminSearch" placeholder="🔎 Search by ID, name or subject...">
+        <select id="adminFilter">
+            <option value="all">All Submissions</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+    </select>
+    </div>
+        <div id="adminList" class="admin-list"></div>
+    </section>
+    </main>
+        <div id="detailsModal" class="modal">
+        <div class="modal-content">
+        <button class="close-modal" onclick="closeModal()">×</button>
+        <div id="modalContent"></div>
+    </div>
+    </div>
+        <div id="toast" class="toast"></div>
+        <script src="script.js"></script>
+</body>
+</html>
