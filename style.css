@@ -1,4 +1,12 @@
-* {
+
+
+
+
+
+
+
+
+ {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -45,6 +53,7 @@ body {
 .header {
     min-height: 75px;
     background: var(--white);
+    opacity: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
