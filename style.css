@@ -43,12 +43,12 @@ body {
   background-attachment: fixed; 
 }
 .header {
-    min-height: 50px;
+    min-height: 40px;
     background: lightlatesgray;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 7px 6%;
+    padding: 6px 6%;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
