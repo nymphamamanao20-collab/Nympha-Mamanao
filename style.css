@@ -44,7 +44,7 @@ body {
 }
 .header {
     min-height: 50px;
-    background: lightgray;
+    background: lightlatesgray;
     display: flex;
     justify-content: space-between;
     align-items: center;
