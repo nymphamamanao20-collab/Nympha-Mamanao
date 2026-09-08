@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeForm();
     initializeFilters();
     renderSubmissions();
-    renderAdmin();
     updateStatistics();
 });
 
@@ -35,7 +34,6 @@ function showSection(sectionName) {
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (sectionName === "dashboard") renderSubmissions();
-    if (sectionName === "admin") renderAdmin();
 }
 
 function initializeForm() {
@@ -65,7 +63,6 @@ function initializeForm() {
         showToast(`Submission created. Ticket ID: ${submission.id}`);
         updateStatistics();
         renderSubmissions();
-        renderAdmin();
         setTimeout(() => showSection("dashboard"), 700);
     });
 }
@@ -90,10 +87,6 @@ function updateStatistics() {
     setText("pendingCount", pending);
     setText("progressCount", progress);
     setText("resolvedCount", resolved);
-    setText("adminTotal", total);
-    setText("adminPending", pending);
-    setText("adminProgress", progress);
-    setText("adminResolved", resolved);
     setText("homeTotal", total);
 }
 
@@ -108,7 +101,6 @@ function renderSubmissions() {
     const search = (document.getElementById("searchInput")?.value || "").toLowerCase();
     const status = document.getElementById("filterStatus")?.value || "all";
     const type = document.getElementById("filterType")?.value || "all";
-
     let filtered = submissions.filter(item => {
         const searchable = `${item.id} ${item.subject} ${item.message} ${item.category} ${item.department} ${item.studentName}`.toLowerCase();
         const matchesSearch = searchable.includes(search);
@@ -116,7 +108,6 @@ function renderSubmissions() {
         const matchesType = type === "all" || item.type === type;
         return matchesSearch && matchesStatus && matchesType;
     });
-
     if (filtered.length === 0) {
         container.innerHTML = `
         <div class="empty-state">
@@ -135,6 +126,10 @@ function createStudentCard(item) {
     const typeClass = item.type.toLowerCase();
     const priorityClass = (item.priority || "Normal").toLowerCase();
     const statusClass = getStatusClass(item.status);
+    
+    // Hide personal info if anonymous
+    const displayName = item.anonymous ? "Anonymous" : escapeHTML(item.studentName);
+
     return `
     <div class="submission-card">
         <div class="card-top">
@@ -145,13 +140,14 @@ function createStudentCard(item) {
                     <span class="tag type-${typeClass}">${escapeHTML(item.type)}</span>
                     <span class="tag">${escapeHTML(item.category)}</span>
                     <span class="tag priority-${priorityClass}">${escapeHTML(item.priority || "Normal")}</span>
+                    ${item.anonymous ? '<span class="tag" style="background:#eef2ff; color:#3730a3;">🔒 Anonymous</span>' : ''}
                 </div>
             </div>
             <span class="status ${statusClass}">${escapeHTML(item.status)}</span>
         </div>
         <p class="card-message">${escapeHTML(item.message.substring(0, 80))}${item.message.length > 80 ? '...' : ''}</p>
         <div class="card-bottom">
-            <span>Submitted ${date}</span>
+            <span>Submitted ${date} by ${displayName}</span>
             <div class="card-actions">
                 <button class="small-btn" onclick="viewSubmission('${item.id}')">View Details</button>
                 <button class="small-btn delete" onclick="deleteSubmission('${item.id}')">Delete</button>
@@ -167,113 +163,6 @@ function initializeFilters() {
     if (searchInput) searchInput.addEventListener("input", renderSubmissions);
     if (filterStatus) filterStatus.addEventListener("change", renderSubmissions);
     if (filterType) filterType.addEventListener("change", renderSubmissions);
-
-    const adminSearch = document.getElementById("adminSearch");
-    const adminFilter = document.getElementById("adminFilter");
-    if (adminSearch) adminSearch.addEventListener("input", renderAdmin);
-    if (adminFilter) adminFilter.addEventListener("change", renderAdmin);
-}
-
-function renderAdmin() {
-    const container = document.getElementById("adminList");
-    if (!container) return;
-    const search = (document.getElementById("adminSearch")?.value || "").toLowerCase();
-    const status = document.getElementById("adminFilter")?.value || "all";
-
-    let filtered = submissions.filter(item => {
-        const searchable = `${item.id} ${item.studentName} ${item.studentId} ${item.subject} ${item.category} ${item.department}`.toLowerCase();
-        const matchesSearch = searchable.includes(search);
-        const matchesStatus = status === "all" || item.status === status;
-        return matchesSearch && matchesStatus;
-    });
-
-    if (filtered.length === 0) {
-        container.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <h3>No records found</h3>
-            <p>No submissions match your search.</p>
-        </div>`;
-        return;
-    }
-    container.innerHTML = filtered.map(createAdminCard).join("");
-}
-
-function createAdminCard(item) {
-    const statusClass = getStatusClass(item.status);
-    return `
-    <div class="admin-card">
-        <div class="card-top">
-            <div>
-                <div class="card-title">${escapeHTML(item.subject)}</div>
-                <div class="card-meta">
-                    <span class="tag">${escapeHTML(item.id)}</span>
-                    <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
-                    <span class="tag">${escapeHTML(item.department)}</span>
-                </div>
-            </div>
-            <span class="status ${statusClass}">${escapeHTML(item.status)}</span>
-        </div>
-        <div class="admin-info">
-            <div class="admin-field">
-                <label>Student</label>
-                <div>${item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName)}</div>
-                <small>ID: ${escapeHTML(item.studentId)}</small>
-            </div>
-            <div class="admin-field">
-                <label>Submitted</label>
-                <div>${formatDate(item.createdAt)}</div>
-                <small>${escapeHTML(item.email)}</small>
-            </div>
-        </div>
-        <div class="admin-info">
-            <div class="admin-field">
-                <label>Change Status</label>
-                <select onchange="changeStatus('${item.id}', this.value)">
-                    <option value="Pending" ${item.status==="Pending"?"selected":""}>Pending</option>
-                    <option value="In Progress" ${item.status==="In Progress"?"selected":""}>In Progress</option>
-                    <option value="Resolved" ${item.status==="Resolved"?"selected":""}>Resolved</option>
-                    <option value="Rejected" ${item.status==="Rejected"?"selected":""}>Rejected</option>
-                </select>
-            </div>
-            <div class="admin-field">
-                <label>Admin Response</label>
-                <textarea id="response-${item.id}" rows="3" placeholder="Write a response...">${escapeHTML(item.response || "")}</textarea>
-                <button class="primary-btn" onclick="saveResponse('${item.id}')">Save Response</button>
-            </div>
-        </div>
-        <div class="card-bottom">
-            <span>Last updated: ${formatDate(item.updatedAt)}</span>
-            <div class="card-actions">
-                <button class="small-btn" onclick="viewSubmission('${item.id}')">View</button>
-                <button class="small-btn delete" onclick="deleteSubmission('${item.id}')">Delete</button>
-            </div>
-        </div>
-    </div>`;
-}
-
-function changeStatus(id, newStatus) {
-    const submission = submissions.find(item => item.id === id);
-    if (!submission) return;
-    submission.status = newStatus;
-    submission.updatedAt = new Date().toISOString();
-    saveData();
-    updateStatistics();
-    renderAdmin();
-    renderSubmissions();
-    showToast(`Ticket ${id} updated to ${newStatus}.`);
-}
-
-function saveResponse(id) {
-    const submission = submissions.find(item => item.id === id);
-    if (!submission) return;
-    const textarea = document.getElementById(`response-${id}`);
-    submission.response = textarea.value.trim();
-    submission.updatedAt = new Date().toISOString();
-    saveData();
-    renderAdmin();
-    renderSubmissions();
-    showToast("Admin response saved successfully.");
 }
 
 function viewSubmission(id) {
@@ -281,16 +170,23 @@ function viewSubmission(id) {
     if (!item) return;
     const modal = document.getElementById("detailsModal");
     const content = document.getElementById("modalContent");
+
+    // Show personal info ONLY to the submitter — or hide if anonymous
+    const displayName = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
+    const displayId = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
+    const displayEmail = item.anonymous ? "Hidden" : escapeHTML(item.email);
+
     content.innerHTML = `
         <h2 class="modal-title">${escapeHTML(item.subject)}</h2>
         <div class="card-meta">
             <span class="tag">${escapeHTML(item.id)}</span>
             <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
             <span class="status ${getStatusClass(item.status)}">${escapeHTML(item.status)}</span>
+            ${item.anonymous ? '<span class="tag" style="background:#eef2ff; color:#3730a3;">🔒 Anonymous</span>' : ''}
         </div>
-        <div class="detail-row"><strong>Student</strong><span>${item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName)}</span></div>
-        <div class="detail-row"><strong>Student ID</strong><span>${escapeHTML(item.studentId)}</span></div>
-        <div class="detail-row"><strong>Email</strong><span>${escapeHTML(item.email)}</span></div>
+        <div class="detail-row"><strong>Student</strong><span>${displayName}</span></div>
+        <div class="detail-row"><strong>Student ID</strong><span>${displayId}</span></div>
+        <div class="detail-row"><strong>Email</strong><span>${displayEmail}</span></div>
         <div class="detail-row"><strong>Department</strong><span>${escapeHTML(item.department)}</span></div>
         <div class="detail-row"><strong>Category</strong><span>${escapeHTML(item.category)}</span></div>
         <div class="detail-row"><strong>Date Submitted</strong><span>${formatDate(item.createdAt)}</span></div>
@@ -317,7 +213,6 @@ function deleteSubmission(id) {
     saveData();
     updateStatistics();
     renderSubmissions();
-    renderAdmin();
     showToast("Submission deleted successfully.");
 }
 
