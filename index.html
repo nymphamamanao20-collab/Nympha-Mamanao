@@ -11,30 +11,29 @@
     <header class="header">
         <div class="logo">
             <div class="logo-icon">
-  <img src="logo.png" alt="Logo">
-    </div>
+                <img src="logo.png" alt="Logo">
+            </div>
             <div>
-            <h1> Aics Student Voice</h1>
-            <span>Feedback & Complaint Management</span>
-    </div>
-    </div>
+                <h1>Aics Student Voice</h1>
+                <span>Feedback & Complaint Management</span>
+            </div>
+        </div>
         <nav>
             <button class="nav-btn active" data-section="home">Home</button>
             <button class="nav-btn" data-section="submit">Submit</button>
             <button class="nav-btn" data-section="dashboard">My Submissions</button>
-            <button class="nav-btn" data-section="admin">Admin</button>
         </nav>
     </header>
     <main>
         <section id="home" class="section active">
         <div class="hero">
         <div class="hero-content">
-        <span class="badge">STUDENT VOICE & SUPPORT PORTAL</span>
-        <h2>Speak Up. Be Heard. <span>Take Action.</span></h2>
-        <p>Submit your feedback, report concerns, and track your complaints easily through our student support management system.</p>
-        <div class="hero-buttons">
-        <button class="primary-btn" onclick="showSection('submit')">Submit Feedback</button>
-        <button class="secondary-btn" onclick="showSection('dashboard')">Track Submission</button>
+            <span class="badge">STUDENT VOICE & SUPPORT PORTAL</span>
+            <h2>Speak Up. Be Heard. <span>Take Action.</span></h2>
+            <p>Submit your feedback, report concerns, and track your complaints easily through our student support management system.</p>
+            <div class="hero-buttons">
+            <button class="primary-btn" onclick="showSection('submit')">Submit Feedback</button>
+            <button class="secondary-btn" onclick="showSection('dashboard')">Track Submission</button>
     </div>
     </div>
         <div class="hero-card">
@@ -58,7 +57,7 @@
         <h3>Track Status</h3>
         <p>Monitor the status of your submission from pending to resolved.</p>
     </div>
-        <div class="feature-card">
+    <div class="feature-card">
         <div class="feature-icon orange">🔒</div>
         <h3>Student Focused</h3>
         <p>Keep communication organized between students and administrators.</p>
@@ -67,9 +66,9 @@
     </section>
         <section id="submit" class="section">
         <div class="page-title">
-        <span class="badge">SUBMISSION</span>
-        <h2>Submit Feedback or Complaint</h2>
-        <p>Tell us what happened and how we can improve.</p>
+            <span class="badge">SUBMISSION</span>
+            <h2>Submit Feedback or Complaint</h2>
+            <p>Tell us what happened and how we can improve.</p>
     </div>
         <div class="form-container">
         <form id="submissionForm">
@@ -131,8 +130,8 @@
         <label for="anonymous">Anonymous Submission</label>
         <div class="toggle-container">
         <input type="checkbox" id="anonymous">
-        <span>Submit without displaying your name publicly.</span>
-     </div>
+        <span>Submit without displaying your information publicly.</span>
+    </div>
     </div>
         <div class="form-actions">
         <button type="reset" class="cancel-btn">Clear Form</button>
@@ -143,7 +142,7 @@
     </section>
         <section id="dashboard" class="section">
         <div class="page-title dashboard-heading">
-    <div>
+        <div>
         <span class="badge">STUDENT DASHBOARD</span>
         <h2>My Submissions</h2>
         <p>View and track your feedback and complaints.</p>
@@ -172,30 +171,6 @@
     </select>
     </div>
         <div id="submissionList" class="submission-list"></div>
-    </section>
-        <section id="admin" class="section">
-        <div class="page-title">
-            <span class="badge">ADMINISTRATION</span>
-            <h2>Admin Management Panel</h2>
-            <p>Manage student Feedback and Complaints.</p>
-    </div>
-        <div class="stats">
-        <div class="stat-card"><div class="stat-icon blue">📋</div><div><strong id="adminTotal">0</strong><span>Total</span></div></div>
-        <div class="stat-card"><div class="stat-icon orange">⏳</div><div><strong id="adminPending">0</strong><span>Pending</span></div></div>
-        <div class="stat-card"><div class="stat-icon purple">🔄</div><div><strong id="adminProgress">0</strong><span>In Progress</span></div></div>
-        <div class="stat-card"><div class="stat-icon green">✓</div><div><strong id="adminResolved">0</strong><span>Resolved</span></div></div>
-     </div>
-        <div class="admin-controls">
-        <input type="search" id="adminSearch" placeholder="🔎 Search by ID, name or subject...">
-        <select id="adminFilter">
-            <option value="all">All Submissions</option>
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Rejected">Rejected</option>
-    </select>
-    </div>
-        <div id="adminList" class="admin-list"></div>
     </section>
     </main>
         <div id="detailsModal" class="modal">
