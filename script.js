@@ -9,16 +9,26 @@ const DEFAULT_ADMIN = {
     password: "admin123",
     role: "admin",
     studentId: "ADMIN001"
+    
 };
 if (!users.find(u => u.email === DEFAULT_ADMIN.email)) {
     users.push(DEFAULT_ADMIN);
     saveUsers();
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    checkSession();
+    initializeNavigation();
+    initializeForm();
+    initializeFilters();
+    renderSubmissions();
+    renderAdmin();
+    updateStatistics();
+    updateAuthUI();
+});
+
 function saveUsers() {
     localStorage.setItem("portalUsers", JSON.stringify(users));
-}
-function saveData() {
-    localStorage.setItem("studentSubmissions", JSON.stringify(submissions));
 }
 function saveSession(user) {
     currentUser = user;
@@ -35,17 +45,6 @@ function checkSession() {
         else { currentUser = fresh; }
     }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    checkSession();
-    initializeNavigation();
-    initializeForm();
-    initializeFilters();
-    renderSubmissions();
-    renderAdmin();
-    updateStatistics();
-    updateAuthUI();
-});
 function updateAuthUI() {
     const loginBtn = document.getElementById("loginBtn");
     const registerBtn = document.getElementById("registerBtn");
@@ -54,34 +53,29 @@ function updateAuthUI() {
     const navAdmin = document.getElementById("navAdmin");
 
     if (currentUser) {
-        if(loginBtn) loginBtn.style.display = "none";
-        if(registerBtn) registerBtn.style.display = "none";
-        if(logoutBtn) logoutBtn.style.display = "block";
-        if(userDisplay) {
-            userDisplay.style.display = "block";
-            userDisplay.textContent = `${currentUser.name} (${currentUser.role})`;
-        }
-        if(navAdmin) navAdmin.style.display = currentUser.role === "admin" ? "block" : "none";
+        loginBtn.style.display = "none";
+        registerBtn.style.display = "none";
+        logoutBtn.style.display = "block";
+        userDisplay.style.display = "block";
+        userDisplay.textContent = `${currentUser.name} (${currentUser.role})`;
+        navAdmin.style.display = currentUser.role === "admin" ? "block" : "none";
     } else {
-        if(loginBtn) loginBtn.style.display = "block";
-        if(registerBtn) registerBtn.style.display = "block";
-        if(logoutBtn) logoutBtn.style.display = "none";
-        if(userDisplay) userDisplay.style.display = "none";
-        if(navAdmin) navAdmin.style.display = "none";
+        loginBtn.style.display = "block";
+        registerBtn.style.display = "block";
+        logoutBtn.style.display = "none";
+        userDisplay.style.display = "none";
+        navAdmin.style.display = "none";
     }
 }
 function openAuth(mode) {
-    const modal = document.getElementById("authModal");
-    if(modal) modal.classList.add("show");
+    document.getElementById("authModal").classList.add("show");
     renderAuthForm(mode);
 }
 function closeAuthModal() {
-    const modal = document.getElementById("authModal");
-    if(modal) modal.classList.remove("show");
+    document.getElementById("authModal").classList.remove("show");
 }
 function renderAuthForm(mode) {
     const container = document.getElementById("authFormContainer");
-    if(!container) return;
     container.innerHTML = mode === "login" ? loginFormHTML() : registerFormHTML();
 }
 function loginFormHTML() {
@@ -123,15 +117,10 @@ function doRegister() {
     const sid = document.getElementById("regStudentId").value.trim();
     const email = document.getElementById("regEmail").value.trim();
     const pass = document.getElementById("regPassword").value;
-
     if (!name || !sid || !email || !pass) return showToast("Fill all fields");
     if (users.find(u => u.email === email)) return showToast("Email already registered");
     if (users.find(u => u.studentId === sid)) return showToast("Student ID already registered");
-
-    const newUser = { 
-        id: "u-" + Date.now(), 
-        name, studentId: sid, email, password: pass, role: "student" 
-    };
+    const newUser = { id: "u-" + Date.now(), name, studentId: sid, email, password: pass, role: "student" };
     users.push(newUser);
     saveUsers();
     saveSession(newUser);
@@ -146,40 +135,38 @@ function logout() {
     showSection("home");
     showToast("Logged out successfully");
 }
+
 function showSection(sectionName) {
     const protectedSections = ["submit", "dashboard", "admin"];
     const adminOnly = ["admin"];
-
     if (protectedSections.includes(sectionName)) {
-        if (!currentUser) { openAuth("login"); return showToast("Please login first"); }
-        if (adminOnly.includes(sectionName) && currentUser.role !== "admin") {
-            return showToast("Admin access only");
-        }
+        if (!currentUser) return openAuth("login"), showToast("Please login first");
+        if (adminOnly.includes(sectionName) && currentUser.role !== "admin") return showToast("Admin access only");
     }
 
     document.querySelectorAll(".section").forEach(section => section.classList.remove("active"));
     const target = document.getElementById(sectionName);
     if (target) target.classList.add("active");
-
     document.querySelectorAll(".nav-btn").forEach(button => {
         button.classList.remove("active");
         if (button.getAttribute("data-section") === sectionName) button.classList.add("active");
     });
-
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (sectionName === "dashboard") renderSubmissions();
     if (sectionName === "admin") renderAdmin();
 }
+
 function initializeNavigation() {
-    document.querySelectorAll(".nav-btn").forEach(button => {
+    const navButtons = document.querySelectorAll(".nav-btn");
+    navButtons.forEach(button => {
         button.addEventListener("click", () => {
-            showSection(button.getAttribute("data-section"));
+            const section = button.getAttribute("data-section");
+            showSection(section);
         });
     });
 }
 function initializeForm() {
     const form = document.getElementById("submissionForm");
-    if(!form) return;
     form.addEventListener("submit", function(event) {
         event.preventDefault();
         const submission = {
@@ -200,12 +187,12 @@ function initializeForm() {
             updatedAt: new Date().toISOString()
         };
         submissions.unshift(submission);
-        saveData(); // ✅ SAVE — goes to Admin Panel automatically
+        saveData();
         form.reset();
         showToast(`Submission created. Ticket ID: ${submission.id}`);
         updateStatistics();
         renderSubmissions();
-        renderAdmin(); // ✅ ADMIN PANEL UPDATED INSTANTLY
+        renderAdmin();
         setTimeout(() => showSection("dashboard"), 700);
     });
 }
@@ -215,12 +202,14 @@ function generateTicketId() {
     const random = Math.floor(10000 + Math.random() * 90000);
     return `SC-${year}-${random}`;
 }
+function saveData() {
+    localStorage.setItem("studentSubmissions", JSON.stringify(submissions));
+}
 function updateStatistics() {
     const total = submissions.length;
-    const pending = submissions.filter(i => i.status === "Pending").length;
-    const progress = submissions.filter(i => i.status === "In Progress").length;
-    const resolved = submissions.filter(i => i.status === "Resolved").length;
-
+    const pending = submissions.filter(item => item.status === "Pending").length;
+    const progress = submissions.filter(item => item.status === "In Progress").length;
+    const resolved = submissions.filter(item => item.status === "Resolved").length;
     setText("totalCount", total);
     setText("pendingCount", pending);
     setText("progressCount", progress);
@@ -235,25 +224,19 @@ function setText(id, value) { const el = document.getElementById(id); if (el) el
 function renderSubmissions() {
     const container = document.getElementById("submissionList");
     if (!container) return;
-
     const search = (document.getElementById("searchInput")?.value || "").toLowerCase();
     const status = document.getElementById("filterStatus")?.value || "all";
     const type = document.getElementById("filterType")?.value || "all";
-
     let filtered = submissions.filter(item => {
         const searchable = `${item.id} ${item.subject} ${item.message} ${item.category} ${item.department} ${item.studentName}`.toLowerCase();
-        return searchable.includes(search) && 
-               (status === "all" || item.status === status) && 
-               (type === "all" || item.type === type);
+        const matchesSearch = searchable.includes(search);
+        const matchesStatus = status === "all" || item.status === status;
+        const matchesType = type === "all" || item.type === type;
+        return matchesSearch && matchesStatus && matchesType;
     });
-
-    // ✅ STUDENTS see ONLY THEIR OWN submissions
     if (currentUser && currentUser.role === "student") {
-        filtered = filtered.filter(item => 
-            item.email === currentUser.email || item.studentId === currentUser.studentId
-        );
+        filtered = filtered.filter(item => item.email === currentUser.email || item.studentId === currentUser.studentId);
     }
-
     if (filtered.length === 0) {
         container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No submissions found</h3><p>You haven't submitted any matching feedback or complaints.</p><button class="primary-btn" onclick="showSection('submit')">Make a Submission</button></div>`;
         return;
@@ -261,13 +244,14 @@ function renderSubmissions() {
     container.innerHTML = filtered.map(createStudentCard).join("");
 }
 function createStudentCard(item) {
-    const date = formatDate(item.createdAt);
-    const typeClass = item.type.toLowerCase();
-    const priorityClass = (item.priority || "Normal").toLowerCase();
-    const statusClass = getStatusClass(item.status);
-    const name = item.anonymous ? "Anonymous" : escapeHTML(item.studentName);
-    const sid = item.anonymous ? "—" : escapeHTML(item.studentId);
-    return `
+  const date = formatDate(item.createdAt);
+  const typeClass = item.type.toLowerCase();
+  const priorityClass = (item.priority || "Normal").toLowerCase();
+  const statusClass = getStatusClass(item.status);
+  const name = item.anonymous ? "Anonymous" : escapeHTML(item.studentName);
+  const sid = item.anonymous ? "—" : escapeHTML(item.studentId);
+
+  return `
     <div class="submission-card">
       <div class="card-top">
         <div>
@@ -298,7 +282,6 @@ function initializeFilters() {
     if (searchInput) searchInput.addEventListener("input", renderSubmissions);
     if (filterStatus) filterStatus.addEventListener("change", renderSubmissions);
     if (filterType) filterType.addEventListener("change", renderSubmissions);
-
     const adminSearch = document.getElementById("adminSearch");
     const adminFilter = document.getElementById("adminFilter");
     if (adminSearch) adminSearch.addEventListener("input", renderAdmin);
@@ -308,30 +291,22 @@ function renderAdmin() {
     if (currentUser?.role !== "admin") return;
     const container = document.getElementById("adminList");
     if (!container) return;
-
     const search = (document.getElementById("adminSearch")?.value || "").toLowerCase();
     const status = document.getElementById("adminFilter")?.value || "all";
-
-    // ✅ ADMIN SEES ALL SUBMISSIONS — NO FILTERS EXCEPT SEARCH & STATUS
     let filtered = submissions.filter(item => {
-        const searchable = `${item.id} ${item.studentName} ${item.studentId} ${item.email} ${item.subject} ${item.category} ${item.department}`.toLowerCase();
+        const searchable = `${item.id} ${item.studentName} ${item.studentId} ${item.subject} ${item.category} ${item.department}`.toLowerCase();
         return searchable.includes(search) && (status === "all" || item.status === status);
     });
-
-    if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No submissions yet</h3><p>All student submissions will appear here automatically.</p></div>`;
-        return;
-    }
+    if (filtered.length === 0) { container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No records found</h3><p>No submissions match your search.</p></div>`; return; }
     container.innerHTML = filtered.map(createAdminCard).join("");
 }
 function createAdminCard(item) {
-    const statusClass = getStatusClass(item.status);
-    // ✅ ADMIN SEES REAL INFO EVEN IF STUDENT CHOSE ANONYMOUS
-    const displayName = item.anonymous ? `${escapeHTML(item.studentName)} (Hidden from students)` : escapeHTML(item.studentName);
-    const displaySid = item.anonymous ? `${escapeHTML(item.studentId)} (Hidden from students)` : escapeHTML(item.studentId);
-    const displayEmail = item.anonymous ? `${escapeHTML(item.email)} (Hidden from students)` : escapeHTML(item.email);
+  const statusClass = getStatusClass(item.status);
+  const name = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
+  const sid = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
+  const email = item.anonymous ? "Hidden" : escapeHTML(item.email);
 
-    return `
+  return `
     <div class="admin-card">
       <div class="card-top">
         <div>
@@ -340,7 +315,6 @@ function createAdminCard(item) {
             <span class="tag">${escapeHTML(item.id)}</span>
             <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
             <span class="tag">${escapeHTML(item.department)}</span>
-            ${item.anonymous ? '<span class="tag" style="background:#e3f2fd;color:#1565c0;">🔒 Anonymous</span>' : ''}
           </div>
         </div>
         <span class="status ${statusClass}">${escapeHTML(item.status)}</span>
@@ -348,13 +322,13 @@ function createAdminCard(item) {
       <div class="admin-info">
         <div class="admin-field">
           <label>Student</label>
-          <div>${displayName}</div>
-          <small>ID: ${displaySid}</small>
+          <div>${name}</div>
+          <small>ID: ${sid}</small>
         </div>
         <div class="admin-field">
-          <label>Contact / Email</label>
-          <div>${displayEmail}</div>
-          <small>Submitted: ${formatDate(item.createdAt)}</small>
+          <label>Submitted</label>
+          <div>${formatDate(item.createdAt)}</div>
+          <small>${email}</small>
         </div>
       </div>
       <div class="admin-info">
@@ -382,13 +356,13 @@ function createAdminCard(item) {
       </div>
     </div>`;
 }
+
 function changeStatus(id, newStatus) {
     const submission = submissions.find(item => item.id === id);
     if (!submission) return;
     submission.status = newStatus;
     submission.updatedAt = new Date().toISOString();
-    saveData();
-    updateStatistics(); renderAdmin(); renderSubmissions();
+    saveData(); updateStatistics(); renderAdmin(); renderSubmissions();
     showToast(`Ticket ${id} updated to ${newStatus}.`);
 }
 function saveResponse(id) {
@@ -397,62 +371,44 @@ function saveResponse(id) {
     const textarea = document.getElementById(`response-${id}`);
     submission.response = textarea.value.trim();
     submission.updatedAt = new Date().toISOString();
-    saveData();
-    renderAdmin(); renderSubmissions();
+    saveData(); renderAdmin(); renderSubmissions();
     showToast("Admin response saved successfully.");
 }
 function viewSubmission(id) {
-    const item = submissions.find(s => s.id === id);
-    if (!item) return;
-    const modal = document.getElementById("detailsModal");
-    const content = document.getElementById("modalContent");
-    
-    // Student view — respects anonymity
-    let name, sid, email;
-    if (currentUser?.role === "admin") {
-        name = escapeHTML(item.studentName);
-        sid = escapeHTML(item.studentId);
-        email = escapeHTML(item.email);
-    } else {
-        name = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
-        sid = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
-        email = item.anonymous ? "Hidden" : escapeHTML(item.email);
-    }
+  const item = submissions.find(submission => submission.id === id);
+  if (!item) return;
+  const modal = document.getElementById("detailsModal");
+  const content = document.getElementById("modalContent");
+  const name = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
+  const sid = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
+  const email = item.anonymous ? "Hidden" : escapeHTML(item.email);
 
-    content.innerHTML = `
-      <h2 class="modal-title">${escapeHTML(item.subject)}</h2>
-      <div class="card-meta">
-        <span class="tag">${escapeHTML(item.id)}</span>
-        <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
-        <span class="status ${getStatusClass(item.status)}">${escapeHTML(item.status)}</span>
-        ${item.anonymous ? '<span class="tag">🔒 Anonymous</span>' : ''}
-      </div>
-      <div class="detail-row"><strong>Student</strong><span>${name}</span></div>
-      <div class="detail-row"><strong>Student ID</strong><span>${sid}</span></div>
-      <div class="detail-row"><strong>Email</strong><span>${email}</span></div>
-      <div class="detail-row"><strong>Department</strong><span>${escapeHTML(item.department)}</span></div>
-      <div class="detail-row"><strong>Category</strong><span>${escapeHTML(item.category)}</span></div>
-      <div class="detail-row"><strong>Date Submitted</strong><span>${formatDate(item.createdAt)}</span></div>
-      <div class="detail-row"><strong>Message</strong><p>${escapeHTML(item.message)}</p></div>
-      ${item.response ? `<div class="detail-row"><strong>Admin Response</strong><p>${escapeHTML(item.response)}</p></div>` : ""}
-    `;
-    if(modal) modal.classList.add("show");
+  content.innerHTML = `
+    <h2 class="modal-title">${escapeHTML(item.subject)}</h2>
+    <div class="card-meta">
+      <span class="tag">${escapeHTML(item.id)}</span>
+      <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
+      <span class="status ${getStatusClass(item.status)}">${escapeHTML(item.status)}</span>
+    </div>
+    <div class="detail-row"><strong>Student</strong><span>${name}</span></div>
+    <div class="detail-row"><strong>Student ID</strong><span>${sid}</span></div>
+    <div class="detail-row"><strong>Email</strong><span>${email}</span></div>
+    <div class="detail-row"><strong>Department</strong><span>${escapeHTML(item.department)}</span></div>
+    <div class="detail-row"><strong>Category</strong><span>${escapeHTML(item.category)}</span></div>
+    <div class="detail-row"><strong>Date Submitted</strong><span>${formatDate(item.createdAt)}</span></div>
+    <div class="detail-row"><strong>Message</strong><p>${escapeHTML(item.message)}</p></div>
+    ${item.response ? `<div class="detail-row"><strong>Admin Response</strong><p>${escapeHTML(item.response)}</p></div>` : ""}
+  `;
+  modal.classList.add("show");
 }
-function closeModal() { 
-    const modal = document.getElementById("detailsModal");
-    if(modal) modal.classList.remove("show"); 
-}
-window.addEventListener("click", e => { 
-    const modal = document.getElementById("detailsModal"); 
-    if (modal && e.target === modal) closeModal(); 
-});
+function closeModal() { document.getElementById("detailsModal").classList.remove("show"); }
+window.addEventListener("click", e => { const modal = document.getElementById("detailsModal"); if (e.target === modal) closeModal(); });
 function deleteSubmission(id) {
     const submission = submissions.find(item => item.id === id);
     if (!submission) return;
     if (!confirm(`Delete submission ${id}?\nThis action cannot be undone.`)) return;
     submissions = submissions.filter(item => item.id !== id);
-    saveData();
-    updateStatistics(); renderSubmissions(); renderAdmin();
+    saveData(); updateStatistics(); renderSubmissions(); renderAdmin();
     showToast("Submission deleted successfully.");
 }
 function getStatusClass(status) {
@@ -465,14 +421,11 @@ function getStatusClass(status) {
     }
 }
 function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString("en-US", { 
-        year: "numeric", month: "short", day: "numeric" 
-    });
+    return new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 let toastTimer;
 function showToast(message) {
     const toast = document.getElementById("toast");
-    if(!toast) return;
     toast.textContent = message;
     toast.classList.add("show");
     clearTimeout(toastTimer);
@@ -480,10 +433,5 @@ function showToast(message) {
 }
 function escapeHTML(value) {
     if (value === null || value === undefined) return "";
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
