@@ -1,9 +1,7 @@
-// ========== DATA LOAD ==========
 let submissions = JSON.parse(localStorage.getItem("studentSubmissions")) || [];
 let users = JSON.parse(localStorage.getItem("portalUsers")) || [];
 let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 
-// ========== DEFAULT ADMIN ACCOUNT ==========
 const DEFAULT_ADMIN = {
     id: "admin-001",
     name: "Admin",
@@ -12,14 +10,10 @@ const DEFAULT_ADMIN = {
     role: "admin",
     studentId: "ADMIN001"
 };
-
-// Create admin if not exists
 if (!users.find(u => u.email === DEFAULT_ADMIN.email)) {
     users.push(DEFAULT_ADMIN);
     saveUsers();
 }
-
-// ========== SAVE FUNCTIONS ==========
 function saveUsers() {
     localStorage.setItem("portalUsers", JSON.stringify(users));
 }
@@ -34,8 +28,6 @@ function clearSession() {
     currentUser = null;
     localStorage.removeItem("currentUser");
 }
-
-// ========== SESSION & INIT ==========
 function checkSession() {
     if (currentUser) {
         const fresh = users.find(u => u.email === currentUser.email);
@@ -54,8 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateStatistics();
     updateAuthUI();
 });
-
-// ========== AUTH UI ==========
 function updateAuthUI() {
     const loginBtn = document.getElementById("loginBtn");
     const registerBtn = document.getElementById("registerBtn");
@@ -80,8 +70,6 @@ function updateAuthUI() {
         if(navAdmin) navAdmin.style.display = "none";
     }
 }
-
-// ========== AUTH MODAL ==========
 function openAuth(mode) {
     const modal = document.getElementById("authModal");
     if(modal) modal.classList.add("show");
@@ -119,8 +107,6 @@ function registerFormHTML() {
             <p>Already have account? <a onclick="renderAuthForm('login')">Login here</a></p>
         </div>`;
 }
-
-// ========== LOGIN / REGISTER / LOGOUT ==========
 function doLogin() {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
@@ -160,8 +146,6 @@ function logout() {
     showSection("home");
     showToast("Logged out successfully");
 }
-
-// ========== NAVIGATION ==========
 function showSection(sectionName) {
     const protectedSections = ["submit", "dashboard", "admin"];
     const adminOnly = ["admin"];
@@ -193,8 +177,6 @@ function initializeNavigation() {
         });
     });
 }
-
-// ========== SUBMISSION FORM ==========
 function initializeForm() {
     const form = document.getElementById("submissionForm");
     if(!form) return;
@@ -233,8 +215,6 @@ function generateTicketId() {
     const random = Math.floor(10000 + Math.random() * 90000);
     return `SC-${year}-${random}`;
 }
-
-// ========== STATISTICS ==========
 function updateStatistics() {
     const total = submissions.length;
     const pending = submissions.filter(i => i.status === "Pending").length;
@@ -252,8 +232,6 @@ function updateStatistics() {
     setText("homeTotal", total);
 }
 function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
-
-// ========== STUDENT DASHBOARD ==========
 function renderSubmissions() {
     const container = document.getElementById("submissionList");
     if (!container) return;
@@ -313,8 +291,6 @@ function createStudentCard(item) {
       </div>
     </div>`;
 }
-
-// ========== FILTERS ==========
 function initializeFilters() {
     const searchInput = document.getElementById("searchInput");
     const filterStatus = document.getElementById("filterStatus");
@@ -328,8 +304,6 @@ function initializeFilters() {
     if (adminSearch) adminSearch.addEventListener("input", renderAdmin);
     if (adminFilter) adminFilter.addEventListener("change", renderAdmin);
 }
-
-// ========== ADMIN PANEL — SEES EVERYTHING ==========
 function renderAdmin() {
     if (currentUser?.role !== "admin") return;
     const container = document.getElementById("adminList");
@@ -408,8 +382,6 @@ function createAdminCard(item) {
       </div>
     </div>`;
 }
-
-// ========== ADMIN ACTIONS ==========
 function changeStatus(id, newStatus) {
     const submission = submissions.find(item => item.id === id);
     if (!submission) return;
@@ -429,8 +401,6 @@ function saveResponse(id) {
     renderAdmin(); renderSubmissions();
     showToast("Admin response saved successfully.");
 }
-
-// ========== VIEW DETAILS ==========
 function viewSubmission(id) {
     const item = submissions.find(s => s.id === id);
     if (!item) return;
@@ -476,8 +446,6 @@ window.addEventListener("click", e => {
     const modal = document.getElementById("detailsModal"); 
     if (modal && e.target === modal) closeModal(); 
 });
-
-// ========== DELETE SUBMISSION ==========
 function deleteSubmission(id) {
     const submission = submissions.find(item => item.id === id);
     if (!submission) return;
@@ -487,8 +455,6 @@ function deleteSubmission(id) {
     updateStatistics(); renderSubmissions(); renderAdmin();
     showToast("Submission deleted successfully.");
 }
-
-// ========== UTILITIES ==========
 function getStatusClass(status) {
     switch (status) {
         case "Pending": return "status-pending";
