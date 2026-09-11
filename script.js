@@ -1,7 +1,9 @@
+// ========== DATA LOAD ==========
 let submissions = JSON.parse(localStorage.getItem("studentSubmissions")) || [];
 let users = JSON.parse(localStorage.getItem("portalUsers")) || [];
 let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 
+// ========== DEFAULT ADMIN ACCOUNT ==========
 const DEFAULT_ADMIN = {
     id: "admin-001",
     name: "Admin",
@@ -10,10 +12,14 @@ const DEFAULT_ADMIN = {
     role: "admin",
     studentId: "ADMIN001"
 };
+
+// Create admin if not exists
 if (!users.find(u => u.email === DEFAULT_ADMIN.email)) {
     users.push(DEFAULT_ADMIN);
     saveUsers();
 }
+
+// ========== SAVE FUNCTIONS ==========
 function saveUsers() {
     localStorage.setItem("portalUsers", JSON.stringify(users));
 }
@@ -28,6 +34,8 @@ function clearSession() {
     currentUser = null;
     localStorage.removeItem("currentUser");
 }
+
+// ========== SESSION & INIT ==========
 function checkSession() {
     if (currentUser) {
         const fresh = users.find(u => u.email === currentUser.email);
@@ -35,6 +43,7 @@ function checkSession() {
         else { currentUser = fresh; }
     }
 }
+
 document.addEventListener("DOMContentLoaded", () => {
     checkSession();
     initializeNavigation();
@@ -45,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateStatistics();
     updateAuthUI();
 });
+
+// ========== AUTH UI ==========
 function updateAuthUI() {
     const loginBtn = document.getElementById("loginBtn");
     const registerBtn = document.getElementById("registerBtn");
@@ -69,6 +80,8 @@ function updateAuthUI() {
         if(navAdmin) navAdmin.style.display = "none";
     }
 }
+
+// ========== AUTH MODAL ==========
 function openAuth(mode) {
     const modal = document.getElementById("authModal");
     if(modal) modal.classList.add("show");
@@ -106,6 +119,8 @@ function registerFormHTML() {
             <p>Already have account? <a onclick="renderAuthForm('login')">Login here</a></p>
         </div>`;
 }
+
+// ========== LOGIN / REGISTER / LOGOUT ==========
 function doLogin() {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
@@ -145,6 +160,8 @@ function logout() {
     showSection("home");
     showToast("Logged out successfully");
 }
+
+// ========== NAVIGATION ==========
 function showSection(sectionName) {
     const protectedSections = ["submit", "dashboard", "admin"];
     const adminOnly = ["admin"];
@@ -176,6 +193,8 @@ function initializeNavigation() {
         });
     });
 }
+
+// ========== SUBMISSION FORM ==========
 function initializeForm() {
     const form = document.getElementById("submissionForm");
     if(!form) return;
@@ -199,12 +218,12 @@ function initializeForm() {
             updatedAt: new Date().toISOString()
         };
         submissions.unshift(submission);
-        saveData(); // ✅ SAVE TO LOCALSTORAGE
+        saveData(); // ✅ SAVE — goes to Admin Panel automatically
         form.reset();
         showToast(`Submission created. Ticket ID: ${submission.id}`);
         updateStatistics();
         renderSubmissions();
-        renderAdmin();
+        renderAdmin(); // ✅ ADMIN PANEL UPDATED INSTANTLY
         setTimeout(() => showSection("dashboard"), 700);
     });
 }
@@ -214,6 +233,8 @@ function generateTicketId() {
     const random = Math.floor(10000 + Math.random() * 90000);
     return `SC-${year}-${random}`;
 }
+
+// ========== STATISTICS ==========
 function updateStatistics() {
     const total = submissions.length;
     const pending = submissions.filter(i => i.status === "Pending").length;
@@ -231,6 +252,8 @@ function updateStatistics() {
     setText("homeTotal", total);
 }
 function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+
+// ========== STUDENT DASHBOARD ==========
 function renderSubmissions() {
     const container = document.getElementById("submissionList");
     if (!container) return;
@@ -245,6 +268,8 @@ function renderSubmissions() {
                (status === "all" || item.status === status) && 
                (type === "all" || item.type === type);
     });
+
+    // ✅ STUDENTS see ONLY THEIR OWN submissions
     if (currentUser && currentUser.role === "student") {
         filtered = filtered.filter(item => 
             item.email === currentUser.email || item.studentId === currentUser.studentId
@@ -304,6 +329,7 @@ function initializeFilters() {
     if (adminFilter) adminFilter.addEventListener("change", renderAdmin);
 }
 
+// ========== ADMIN PANEL — SEES EVERYTHING ==========
 function renderAdmin() {
     if (currentUser?.role !== "admin") return;
     const container = document.getElementById("adminList");
@@ -312,22 +338,25 @@ function renderAdmin() {
     const search = (document.getElementById("adminSearch")?.value || "").toLowerCase();
     const status = document.getElementById("adminFilter")?.value || "all";
 
+    // ✅ ADMIN SEES ALL SUBMISSIONS — NO FILTERS EXCEPT SEARCH & STATUS
     let filtered = submissions.filter(item => {
-        const searchable = `${item.id} ${item.studentName} ${item.studentId} ${item.subject} ${item.category} ${item.department}`.toLowerCase();
+        const searchable = `${item.id} ${item.studentName} ${item.studentId} ${item.email} ${item.subject} ${item.category} ${item.department}`.toLowerCase();
         return searchable.includes(search) && (status === "all" || item.status === status);
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No records found</h3><p>No submissions match your search.</p></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No submissions yet</h3><p>All student submissions will appear here automatically.</p></div>`;
         return;
     }
     container.innerHTML = filtered.map(createAdminCard).join("");
 }
 function createAdminCard(item) {
     const statusClass = getStatusClass(item.status);
-    const name = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
-    const sid = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
-    const email = item.anonymous ? "Hidden" : escapeHTML(item.email);
+    // ✅ ADMIN SEES REAL INFO EVEN IF STUDENT CHOSE ANONYMOUS
+    const displayName = item.anonymous ? `${escapeHTML(item.studentName)} (Hidden from students)` : escapeHTML(item.studentName);
+    const displaySid = item.anonymous ? `${escapeHTML(item.studentId)} (Hidden from students)` : escapeHTML(item.studentId);
+    const displayEmail = item.anonymous ? `${escapeHTML(item.email)} (Hidden from students)` : escapeHTML(item.email);
+
     return `
     <div class="admin-card">
       <div class="card-top">
@@ -337,6 +366,7 @@ function createAdminCard(item) {
             <span class="tag">${escapeHTML(item.id)}</span>
             <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
             <span class="tag">${escapeHTML(item.department)}</span>
+            ${item.anonymous ? '<span class="tag" style="background:#e3f2fd;color:#1565c0;">🔒 Anonymous</span>' : ''}
           </div>
         </div>
         <span class="status ${statusClass}">${escapeHTML(item.status)}</span>
@@ -344,13 +374,13 @@ function createAdminCard(item) {
       <div class="admin-info">
         <div class="admin-field">
           <label>Student</label>
-          <div>${name}</div>
-          <small>ID: ${sid}</small>
+          <div>${displayName}</div>
+          <small>ID: ${displaySid}</small>
         </div>
         <div class="admin-field">
-          <label>Submitted</label>
-          <div>${formatDate(item.createdAt)}</div>
-          <small>${email}</small>
+          <label>Contact / Email</label>
+          <div>${displayEmail}</div>
+          <small>Submitted: ${formatDate(item.createdAt)}</small>
         </div>
       </div>
       <div class="admin-info">
@@ -379,12 +409,13 @@ function createAdminCard(item) {
     </div>`;
 }
 
+// ========== ADMIN ACTIONS ==========
 function changeStatus(id, newStatus) {
     const submission = submissions.find(item => item.id === id);
     if (!submission) return;
     submission.status = newStatus;
     submission.updatedAt = new Date().toISOString();
-    saveData(); // ✅ SAVE
+    saveData();
     updateStatistics(); renderAdmin(); renderSubmissions();
     showToast(`Ticket ${id} updated to ${newStatus}.`);
 }
@@ -394,25 +425,37 @@ function saveResponse(id) {
     const textarea = document.getElementById(`response-${id}`);
     submission.response = textarea.value.trim();
     submission.updatedAt = new Date().toISOString();
-    saveData(); // ✅ SAVE
+    saveData();
     renderAdmin(); renderSubmissions();
     showToast("Admin response saved successfully.");
 }
 
+// ========== VIEW DETAILS ==========
 function viewSubmission(id) {
     const item = submissions.find(s => s.id === id);
     if (!item) return;
     const modal = document.getElementById("detailsModal");
     const content = document.getElementById("modalContent");
-    const name = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
-    const sid = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
-    const email = item.anonymous ? "Hidden" : escapeHTML(item.email);
+    
+    // Student view — respects anonymity
+    let name, sid, email;
+    if (currentUser?.role === "admin") {
+        name = escapeHTML(item.studentName);
+        sid = escapeHTML(item.studentId);
+        email = escapeHTML(item.email);
+    } else {
+        name = item.anonymous ? "Anonymous Student" : escapeHTML(item.studentName);
+        sid = item.anonymous ? "Hidden" : escapeHTML(item.studentId);
+        email = item.anonymous ? "Hidden" : escapeHTML(item.email);
+    }
+
     content.innerHTML = `
       <h2 class="modal-title">${escapeHTML(item.subject)}</h2>
       <div class="card-meta">
         <span class="tag">${escapeHTML(item.id)}</span>
         <span class="tag type-${item.type.toLowerCase()}">${escapeHTML(item.type)}</span>
         <span class="status ${getStatusClass(item.status)}">${escapeHTML(item.status)}</span>
+        ${item.anonymous ? '<span class="tag">🔒 Anonymous</span>' : ''}
       </div>
       <div class="detail-row"><strong>Student</strong><span>${name}</span></div>
       <div class="detail-row"><strong>Student ID</strong><span>${sid}</span></div>
@@ -434,15 +477,18 @@ window.addEventListener("click", e => {
     if (modal && e.target === modal) closeModal(); 
 });
 
+// ========== DELETE SUBMISSION ==========
 function deleteSubmission(id) {
     const submission = submissions.find(item => item.id === id);
     if (!submission) return;
     if (!confirm(`Delete submission ${id}?\nThis action cannot be undone.`)) return;
     submissions = submissions.filter(item => item.id !== id);
-    saveData(); // ✅ SAVE AFTER DELETE
+    saveData();
     updateStatistics(); renderSubmissions(); renderAdmin();
     showToast("Submission deleted successfully.");
 }
+
+// ========== UTILITIES ==========
 function getStatusClass(status) {
     switch (status) {
         case "Pending": return "status-pending";
