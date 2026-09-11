@@ -8,6 +8,13 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
+    <div id="authModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-auth" onclick="closeAuthModal()">×</button>
+            <div id="authFormContainer"></div>
+        </div>
+    </div>
+
     <header class="header">
         <div class="logo">
             <div class="logo-icon">
@@ -20,10 +27,18 @@
         </div>
         <nav>
             <button class="nav-btn active" data-section="home">Home</button>
-            <button class="nav-btn" data-section="submit">Submit</button>
-            <button class="nav-btn" data-section="dashboard">My Submissions</button>
+            <button class="nav-btn" data-section="submit" id="navSubmit">Submit</button>
+            <button class="nav-btn" data-section="dashboard" id="navDashboard">My Submissions</button>
+            <button class="nav-btn" data-section="admin" id="navAdmin" style="display:none;">Admin</button>
         </nav>
+        <div class="auth-header">
+            <span id="userDisplay" style="display:none;"></span>
+            <button id="loginBtn" class="auth-btn" onclick="openAuth('login')">Login</button>
+            <button id="registerBtn" class="auth-btn" onclick="openAuth('register')">Register</button>
+            <button id="logoutBtn" class="auth-btn" style="display:none;" onclick="logout()">Logout</button>
+        </div>
     </header>
+
     <main>
         <section id="home" class="section active">
         <div class="hero">
@@ -32,8 +47,8 @@
             <h2>Speak Up. Be Heard. <span>Take Action.</span></h2>
             <p>Submit your feedback, report concerns, and track your complaints easily through our student support management system.</p>
             <div class="hero-buttons">
-            <button class="primary-btn" onclick="showSection('submit')">Submit Feedback</button>
-            <button class="secondary-btn" onclick="showSection('dashboard')">Track Submission</button>
+            <button class="primary-btn" onclick="openAuth('login')">Submit Feedback</button>
+            <button class="secondary-btn" onclick="openAuth('login')">Track Submission</button>
     </div>
     </div>
         <div class="hero-card">
@@ -64,6 +79,7 @@
     </div>
     </div>
     </section>
+
         <section id="submit" class="section">
         <div class="page-title">
             <span class="badge">SUBMISSION</span>
@@ -94,7 +110,7 @@
             <option>BS Computer Science</option>
             <option>BS Computer Engineering</option>
             <option>BS Entrepreneurship</option>
-    </select>
+        </select>
     </div>
     </div>
         <div class="form-row">
@@ -104,7 +120,7 @@
             <option value="">Select type</option>
             <option value="Feedback">Feedback</option>
             <option value="Complaint">Complaint</option>
-    </select>
+        </select>
     </div>
         <div class="form-group">
         <label for="category">Category</label>
@@ -115,7 +131,7 @@
             <option>Guidance Faculty</option>
             <option>Facilities</option>
             <option>Other</option>
-    </select>
+        </select>
     </div>
     </div>
         <div class="form-group">
@@ -140,6 +156,7 @@
     </form>
     </div>
     </section>
+
         <section id="dashboard" class="section">
         <div class="page-title dashboard-heading">
         <div>
@@ -172,14 +189,45 @@
     </div>
         <div id="submissionList" class="submission-list"></div>
     </section>
+
+        <section id="admin" class="section">
+        <div class="page-title dashboard-heading">
+        <div>
+        <span class="badge">ADMIN PANEL</span>
+        <h2>All Submissions</h2>
+        <p>Manage and respond to submissions.</p>
+    </div>
+    </div>
+        <div class="admin-warning">
+            <strong>⚠️ ADMIN ONLY</strong> You can update status and respond to submissions.
+        </div>
+        <div class="stats">
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div><strong id="adminTotal">0</strong><span>Total</span></div></div>
+        <div class="stat-card"><div class="stat-icon orange">⏳</div><div><strong id="adminPending">0</strong><span>Pending</span></div></div>
+        <div class="stat-card"><div class="stat-icon purple">🔄</div><div><strong id="adminProgress">0</strong><span>In Progress</span></div></div>
+        <div class="stat-card"><div class="stat-icon green">✓</div><div><strong id="adminResolved">0</strong><span>Resolved</span></div></div>
+    </div>
+        <div class="admin-controls">
+        <input type="search" id="adminSearch" placeholder="🔎 Search by student, ID or subject...">
+        <select id="adminFilter">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+    </select>
+    </div>
+        <div id="adminList" class="admin-list"></div>
+    </section>
     </main>
-        <div id="detailsModal" class="modal">
+
+    <div id="detailsModal" class="modal">
         <div class="modal-content">
         <button class="close-modal" onclick="closeModal()">×</button>
         <div id="modalContent"></div>
     </div>
     </div>
-        <div id="toast" class="toast"></div>
-        <script src="script.js"></script>
+    <div id="toast" class="toast"></div>
+    <script src="script.js"></script>
 </body>
 </html>
